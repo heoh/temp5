@@ -15,15 +15,12 @@ import { argv, env } from 'node:process';
 // WASI 인스턴스 생성
 const wasi = new WASI({
   version: 'preview1',
-  args: argv.slice(1),
+  args: ['wasm'],  // 기본 인자 (프로그램 이름만)
   env: env,
-  preopens: {
-    '/': '.',
-  },
 });
 
 // WASM 파일 경로 (빌드 후 생성되는 경로)
-const wasmPath = process.argv[2] || '../../bazel-bin/main/hello_world_wasi_c';
+const wasmPath = process.argv[2] || './bazel-bin/main/hello_world_wasi_c';
 
 try {
   // WASM 바이너리 로드
