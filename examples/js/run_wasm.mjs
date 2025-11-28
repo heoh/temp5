@@ -16,18 +16,25 @@
 import { readFile } from 'node:fs/promises';
 import { WASI } from 'node:wasi';
 import { argv, env } from 'node:process';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+
+// 스크립트 디렉토리 기준 경로 계산
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const dummyRootPath = resolve(__dirname, '../dummy_root');
 
 // 커맨드 라인 인자 파싱
 const args = process.argv.slice(2);
 const listRootFlag = args.includes('--list-root');
 const wasmPath = args.find(a => !a.startsWith('--')) || './bazel-bin/main/hello_world_wasi_lib';
 
-// WASI 인스턴스 생성
+// WASI 인스턴스 생성 (더미 루트 디렉토리를 "/"로 매핑)
 const wasi = new WASI({
   version: 'preview1',
   args: ['wasm'],
   env: env,
-  preopens: listRootFlag ? { '/': '/' } : {},  // list_root_directory 호출 시 파일시스템 권한 부여
+  preopens: listRootFlag ? { '/': dummyRootPath } : {},
 });
 
 try {

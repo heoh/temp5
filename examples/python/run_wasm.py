@@ -26,12 +26,13 @@ except ImportError:
     sys.exit(1)
 
 
-def run_wasm(wasm_path: str, call_function: str = None) -> int:
+def run_wasm(wasm_path: str, call_function: str = None, dummy_root: str = None) -> int:
     """WASI WASM 모듈을 실행합니다.
     
     Args:
         wasm_path: WASM 파일 경로
         call_function: 호출할 export 함수 이름 (None이면 _start 실행)
+        dummy_root: 더미 루트 디렉토리 경로 (파일시스템 접근용)
     """
     
     # 엔진 및 스토어 생성
@@ -43,9 +44,9 @@ def run_wasm(wasm_path: str, call_function: str = None) -> int:
     wasi_config.inherit_stdout()
     wasi_config.inherit_stderr()
     wasi_config.inherit_stdin()
-    # 파일시스템 접근 권한 부여 (루트 디렉토리)
-    if call_function == "list_root_directory":
-        wasi_config.preopen_dir("/", "/")
+    # 파일시스템 접근 권한 부여 (더미 루트 디렉토리를 "/"로 매핑)
+    if call_function == "list_root_directory" and dummy_root:
+        wasi_config.preopen_dir(dummy_root, "/")
     store.set_wasi(wasi_config)
     
     # 링커에 WASI 함수들 추가
@@ -120,9 +121,13 @@ def main():
     print(f"WASM 파일 로드: {wasm_path}")
     print("-" * 40)
     
+    # 더미 루트 디렉토리 경로
+    script_dir = Path(__file__).parent
+    dummy_root = str((script_dir / "../dummy_root").resolve())
+    
     # list_root_directory 또는 say_hello 호출
     call_function = "list_root_directory" if list_root_flag else "say_hello"
-    exit_code = run_wasm(str(wasm_path), call_function)
+    exit_code = run_wasm(str(wasm_path), call_function, dummy_root)
     sys.exit(exit_code)
 
 
