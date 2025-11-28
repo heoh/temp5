@@ -2,7 +2,17 @@
 #include <dirent.h>
 #include <string.h>
 
+// WASM export 매크로
+#ifdef __wasm__
+#define WASM_EXPORT __attribute__((export_name(#name)))
+#define WASM_EXPORT_AS(name) __attribute__((export_name(#name)))
+#else
+#define WASM_EXPORT
+#define WASM_EXPORT_AS(name)
+#endif
+
 // 지정한 경로의 폴더 목록을 출력
+WASM_EXPORT_AS(list_directory)
 void list_directory(const char* path) {
     DIR* dir = opendir(path);
     if (dir == NULL) {
@@ -28,6 +38,7 @@ void list_directory(const char* path) {
 }
 
 // 루트 경로("/")의 폴더 목록을 출력
+WASM_EXPORT_AS(list_root_directory)
 void list_root_directory(void) {
     list_directory("/");
 }

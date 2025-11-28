@@ -287,6 +287,86 @@ cc_binary(
 )
 ```
 
+### 4. Reactor 모드 (main 없이 함수만 export)
+
+Command 모드(`_start`)는 wasmtime CLI로 실행할 때 적합하지만, Node.js나 Python 클라이언트에서 개별 함수를 호출하려면 **Reactor 모드**가 필요합니다.
+
+```python
+# BUILD
+cc_binary(
+    name = "hello_world_wasi_lib",
+    srcs = ["hello_world_lib.cc"],
+    linkopts = ["-mexec-model=reactor"],  # 핵심: reactor 모드
+    target_compatible_with = [
+        "@platforms//os:wasi",
+        "@platforms//cpu:wasm32",
+    ],
+)
+```
+
+**Reactor 모드 vs Command 모드:**
+
+| 항목 | Command 모드 | Reactor 모드 |
+|------|-------------|-------------|
+| 진입점 | `_start` (main 호출) | `_initialize` (초기화만) |
+| main 함수 | 필요 | 불필요 |
+| 함수 직접 호출 | 불가 (Node.js WASI) | 가능 |
+| 사용 사례 | wasmtime CLI | 클라이언트 통합 |
+
+**C++ 함수 export 방법:**
+
+```cpp
+// WASM export 매크로
+#ifdef __wasm__
+#define WASM_EXPORT_AS(name) __attribute__((export_name(#name)))
+#else
+#define WASM_EXPORT_AS(name)
+#endif
+
+// C 링크로 export (네임 맹글링 방지)
+extern "C" {
+    WASM_EXPORT_AS(say_hello)
+    void wasm_say_hello();
+    
+    WASM_EXPORT_AS(list_root_directory)
+    void wasm_list_root_directory();
+}
+
+void wasm_say_hello() {
+    std::cout << "Hello World from WASI!" << std::endl;
+}
+```
+
+**클라이언트 사용 예시 (Python):**
+
+```python
+from wasmtime import Engine, Store, Module, Linker, WasiConfig
+
+engine = Engine()
+store = Store(engine)
+
+# WASI 설정
+wasi_config = WasiConfig()
+wasi_config.inherit_stdout()
+wasi_config.preopen_dir("/", "/")  # 파일시스템 권한
+store.set_wasi(wasi_config)
+
+linker = Linker(engine)
+linker.define_wasi()
+
+module = Module.from_file(engine, "hello_world_wasi_lib")
+instance = linker.instantiate(store, module)
+
+# _initialize 호출 (필수!)
+initialize = instance.exports(store).get("_initialize")
+if initialize:
+    initialize(store)
+
+# export 함수 직접 호출
+say_hello = instance.exports(store).get("say_hello")
+say_hello(store)  # "Hello World from WASI!" 출력
+```
+
 ---
 
 ## 참고 자료
