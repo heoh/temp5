@@ -1,0 +1,2 @@
+# MODULE.bazel file for Bazel project
+module(name = "hello_world", version = "1.0.0")
