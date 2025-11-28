@@ -1,3 +1,11 @@
+/**
+ * WASI Reactor 모드 라이브러리 (C++)
+ * 
+ * 이 파일은 main() 없이 export 함수만 제공합니다.
+ * -mexec-model=reactor 플래그로 빌드하면 _start 대신 _initialize가 생성됩니다.
+ * 클라이언트에서 개별 함수를 직접 호출할 수 있습니다.
+ */
+
 #include <iostream>
 #include <dirent.h>
 #include <sys/stat.h>
@@ -11,13 +19,16 @@
 #define WASM_EXPORT_AS(name)
 #endif
 
-// C 링크 래퍼 함수 (WASM export용)
+// C 링크 래퍼 함수 선언 (WASM export용)
 extern "C" {
     WASM_EXPORT_AS(list_root_directory)
     void wasm_list_root_directory();
     
     WASM_EXPORT_AS(list_directory)
     void wasm_list_directory(const char* path);
+    
+    WASM_EXPORT_AS(say_hello)
+    void wasm_say_hello();
 }
 
 // 지정한 경로의 폴더 목록을 출력
@@ -59,13 +70,6 @@ void wasm_list_directory(const char* path) {
     list_directory(std::string(path));
 }
 
-int main(int argc, char* argv[]) {
-    if (argc > 1) {
-        // 인자가 있으면 해당 경로의 디렉토리 목록 출력
-        list_directory(argv[1]);
-    } else {
-        // 인자가 없으면 기본 메시지 출력
-        std::cout << "Hello World" << std::endl;
-    }
-    return 0;
+void wasm_say_hello() {
+    std::cout << "Hello World from WASI!" << std::endl;
 }
