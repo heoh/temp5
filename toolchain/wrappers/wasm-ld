@@ -1,0 +1,6 @@
+#!/bin/bash
+WASI_SDK_DIR="external/+_repo_rules+wasi_sdk"
+if [ ! -d "$WASI_SDK_DIR" ]; then
+    WASI_SDK_DIR="external/wasi_sdk"
+fi
+exec "$WASI_SDK_DIR/bin/wasm-ld" "$@"

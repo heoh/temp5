@@ -1,0 +1,8 @@
+# Common settings
+common --enable_bzlmod
+
+# WASI build configuration
+build:wasi --platforms=//platforms:wasm32-wasi
+build:wasi --features=-layering_check
+build:wasi --features=no_legacy_features
+build:wasi --noincompatible_validate_top_level_header_inclusions
