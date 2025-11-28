@@ -56,6 +56,21 @@ wasmtime ./bazel-bin/main/hello_world_wasi_c
 # 출력: Hello World from WASI!
 ```
 
+### 디렉토리 목록 출력 (CLI 인자 사용)
+
+WASI 바이너리는 CLI 인자로 경로를 전달하면 해당 디렉토리 목록을 출력합니다:
+
+```bash
+# 루트 디렉토리 목록
+wasmtime --dir=/ ./bazel-bin/main/hello_world_wasi_c /
+wasmtime --dir=/ ./bazel-bin/main/hello_world_wasi /
+
+# 특정 디렉토리 목록
+wasmtime --dir=/home ./bazel-bin/main/hello_world_wasi /home
+```
+
+> **참고**: `--dir=<path>` 옵션은 wasmtime에 해당 경로에 대한 파일시스템 접근 권한을 부여합니다.
+
 ## 빌드 타겟 목록
 
 | 타겟 | 언어 | 플랫폼 | 설명 |
